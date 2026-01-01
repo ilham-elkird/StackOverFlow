@@ -24,7 +24,7 @@ public class NotificationEntity {
     @Enumerated(EnumType.STRING)
     private NotificationType type;
 
-    private boolean read = false;
+    private boolean isRead= false;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
