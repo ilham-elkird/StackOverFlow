@@ -25,7 +25,7 @@ public class AnswerEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String body;
 
-    private int voteCount = 0;
+    private Integer voteCount = 0;
     private boolean accepted = false;
 
     @CreationTimestamp

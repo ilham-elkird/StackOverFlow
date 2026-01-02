@@ -30,8 +30,8 @@ public class QuestionEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String body;
 
-    private int viewCount = 0;
-    private int voteCount = 0;
+    private Integer viewCount = 0;
+    private Integer voteCount = 0;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
