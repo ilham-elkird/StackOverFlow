@@ -11,9 +11,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
+
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -30,19 +34,21 @@ public class AuthController {
     // ====================== REGISTER ======================
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserEntity user) {
-        // تحقق من الـ username
+        // Tahqiq mn username ou email
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Username already exists");
         }
-        // تحقق من الـ email
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Email already exists");
         }
 
-        // تشفير الـ password
+        // Encrypt password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Save f DB
         userRepository.save(user);
 
+        // Return message success (ma trja3sh l-user object hit fih password!)
         return ResponseEntity.ok("User registered successfully");
     }
 

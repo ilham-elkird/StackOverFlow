@@ -13,11 +13,11 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/api/**") // كل الـ API
-                        .allowedOrigins("http://localhost:5173") // port ديال Vite
+                registry.addMapping("/**") // Smeh l-ga3 l-endpoints
+                        .allowedOrigins("http://localhost:5173") // Port dial Vite
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                         .allowedHeaders("*")
-                        .exposedHeaders("Authorization")
+                        .exposedHeaders("Authorization") // Bach React i-qder i-chouf l-token
                         .allowCredentials(true)
                         .maxAge(3600);
             }
