@@ -1,6 +1,7 @@
 package com.example.stackoverflow.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,10 +23,11 @@ public class TagEntity {
     @Column(unique = true, nullable = false)
     private String name;
 
-    private String description;
-
-    private int usageCount = 0;
-
     @ManyToMany(mappedBy = "tags")
+    @JsonIgnore // مهم جداً لمنع الـ Loop
     private Set<QuestionEntity> questions = new HashSet<>();
+
+    // هادي باش الفرونت يوصل للسمية مباشرة كـ String
+    @Override
+    public String toString() { return name; }
 }

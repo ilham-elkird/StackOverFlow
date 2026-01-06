@@ -1,62 +1,55 @@
 package com.example.stackoverflow.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import javax.xml.stream.events.Comment;
+import lombok.Getter;
+import lombok.Setter;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
+import java.util.List; // زيدي هادي
 import java.util.Set;
 
 @Entity
 @Table(name = "questions")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
 public class QuestionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String title;
-
-    @Column(columnDefinition = "TEXT", nullable = false)
     private String body;
 
     private Integer viewCount = 0;
     private Integer voteCount = 0;
 
-    @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"questions", "password", "answers", "comments", "votes", "notifications"})
     private UserEntity user;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AnswerEntity> answers = new ArrayList<>();
-
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CommentEntity> comments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<VoteEntity> votes = new ArrayList<>();
-
-    @ManyToMany
-    @JoinTable(
-            name = "question_tags",
-            joinColumns = @JoinColumn(name = "question_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
-    )
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "question_tags", joinColumns = @JoinColumn(name = "question_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    @JsonIgnoreProperties("questions")
     private Set<TagEntity> tags = new HashSet<>();
+
+    // --- التعديل الضروري هنا ---
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonIgnoreProperties("question") // باش ما يوقعش Infinite Loop
+    private List<AnswerEntity> answers;
+
+    // ميطود كتحسب عدد الأجوبة باش تسهل على الفرونت
+    public int getAnswersCount() {
+        return (answers != null) ? answers.size() : 0;
+    }
+    // -------------------------
+
+    public UserEntity getAuthor() { return this.user; }
+    public String getContent() { return this.body; }
+
+    @PrePersist
+    protected void onCreate() { this.createdAt = LocalDateTime.now(); }
 }

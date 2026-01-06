@@ -1,3 +1,4 @@
 package com.example.stackoverflow.controller;
 
-public record AuthResponse(String token) {}
+
+public record AuthResponse(String accessToken) {}

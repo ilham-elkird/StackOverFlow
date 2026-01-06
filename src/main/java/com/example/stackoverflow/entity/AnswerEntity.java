@@ -1,47 +1,37 @@
 package com.example.stackoverflow.entity;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.aspectj.weaver.patterns.TypePatternQuestions;
-import org.hibernate.annotations.CreationTimestamp;
-
+import lombok.Getter;
+import lombok.Setter;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "reponces")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "answers")
+@Getter
+@Setter
 public class AnswerEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String body;
 
-    private Integer voteCount = 0;
-    private boolean accepted = false;
-
-    @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"questions", "answers", "password"})
     private UserEntity user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
+    @JsonIgnoreProperties("answers") // هادي هي اللي كتحبس الـ Infinite Loop
     private QuestionEntity question;
 
-    @OneToMany(mappedBy = "answer", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CommentEntity> comments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "answer", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<VoteEntity> votes = new ArrayList<>();
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

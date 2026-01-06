@@ -1,4 +1,6 @@
 package com.example.stackoverflow.controller;
+
+import com.example.stackoverflow.dto.UserDto;
 import com.example.stackoverflow.entity.UserEntity;
 import com.example.stackoverflow.repository.UserRepository;
 import com.example.stackoverflow.security.JwtUtil;
@@ -11,13 +13,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
-
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -31,45 +30,36 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // ====================== REGISTER ======================
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody UserEntity user) {
-        // Tahqiq mn username ou email
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+    public ResponseEntity<?> register(@RequestBody UserDto userDto) {
+        if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Username already exists");
         }
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Email already exists");
-        }
 
-        // Encrypt password
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        UserEntity user = new UserEntity();
+        user.setUsername(userDto.getUsername());
+        user.setEmail(userDto.getEmail());
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setRoles("ROLE_USER");
 
-        // Save f DB
         userRepository.save(user);
-
-        // Return message success (ma trja3sh l-user object hit fih password!)
         return ResponseEntity.ok("User registered successfully");
     }
 
-    // ====================== LOGIN ======================
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
-        // التحقق من الـ username و password
+        // Records in Java use name() method, so authRequest.username() is correct
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        authRequest.username(),   // بدون get
-                        authRequest.password()    // بدون get
+                        authRequest.username(),
+                        authRequest.password()
                 )
         );
 
-        // جلب المستخدم
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
-        // توليد الـ JWT
         String jwt = jwtUtil.generateToken(userDetails);
 
-        // إرجاع الـ token
+        // Hna l-farq: React kiytsenna accessToken
         return ResponseEntity.ok(new AuthResponse(jwt));
     }
 }
