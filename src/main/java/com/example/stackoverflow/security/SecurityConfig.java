@@ -39,13 +39,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // تعطيل CSRF ضروري باش يخدم الـ POST
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+
+                        // 1. السماح بقراءة الأسئلة للجميع
                         .requestMatchers(HttpMethod.GET, "/api/questions/**").permitAll()
+
+                        // 2. السماح بالتصويت (POST) للأسئلة والأجوبة للجميع (أو حيدي permitAll إيلا بغيتي غير اللي مسجل)
+                        .requestMatchers(HttpMethod.POST, "/api/questions/*/vote").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/answers/*/vote").permitAll()
+
+                        // 3. السماح بإضافة جواب (إيلا بغيتي permitAll)
+                        .requestMatchers(HttpMethod.POST, "/api/questions/*/answers").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -56,8 +66,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // فتحنا كاع البورتات ديال React (5173 و 5174)
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173", "http://127.0.0.1:5174"));
+        // أضفنا كل بورتات التطوير الممكنة
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "http://127.0.0.1:5173",
+                "http://127.0.0.1:5174"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin"));
         configuration.setAllowCredentials(true);
